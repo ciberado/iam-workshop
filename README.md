@@ -57,8 +57,8 @@ echo Active account: $(aws sts get-caller-identity --query Account --output text
 * Create users for our developers on that account
 
 ```bash
-aws iam create-user --user-name ${PREFIX}-Bob
-aws iam create-user --user-name ${PREFIX}-Charlie
+aws iam create-▒▒▒▒ --user-name ${PREFIX}-Bob
+aws iam create-▒▒▒▒ --user-name ${PREFIX}-Charlie
 ```
 
 * Create a group for those developers
@@ -71,8 +71,8 @@ aws iam list-groups --output table
 * Add the users to the group
 
 ```bash
-aws iam add-user-to-group --group-name ${PREFIX}-developers --user-name ${PREFIX}-Bob
-aws iam add-user-to-group --group-name ${PREFIX}-developers --user-name ${PREFIX}-Charlie
+aws iam add-user-to-group --▒▒▒▒▒-name ${PREFIX}-developers --▒▒▒▒-name ${PREFIX}-Bob
+aws iam add-user-to-group --▒▒▒▒▒-name ${PREFIX}-developers --▒▒▒▒-name ${PREFIX}-Charlie
 ```
 
 * Check everything is in place
@@ -105,7 +105,7 @@ echo The ARN of the S3 full access policy is $S3_FULL_ACCESS_POLICY.
 * Allow developers to fully take control of S3 on their accounts (remember, we are running this commands with Alice creds on `DEV_ACCOUNT`)
 
 ```bash
-aws iam attach-group-policy --group-name  ${PREFIX}-developers --policy-arn $S3_FULL_ACCESS_POLICY
+aws iam ▒▒▒▒▒▒-group-policy --group-name  ${PREFIX}-developers --policy-arn $S3_FULL_ACCESS_POLICY
 ```
 
 ## Global admin workflow 3: initial production account setup
@@ -127,9 +127,9 @@ echo Active account: $(aws sts get-caller-identity --query Account --output text
 * Repeat the previous steps, but in this case for our systems operator (Daniella)
 
 ```bash
-aws iam create-user --user-name ${PREFIX}-Daniella
+aws iam create-▒▒▒▒ --user-name ${PREFIX}-Daniella
 aws iam create-group --group-name ${PREFIX}-sysops
-aws iam add-user-to-group --group-name ${PREFIX}-sysops --user-name ${PREFIX}-Daniella
+aws iam add-user-to-group --▒▒▒▒▒-name ${PREFIX}-sysops --▒▒▒▒-name ${PREFIX}-Daniella
 
 aws iam get-group --group-name  ${PREFIX}-sysops --output text
 
@@ -143,7 +143,7 @@ cat daniella.json
 ADMIN_POLICY=$(aws iam list-policies --query 'Policies[?PolicyName==`AdministratorAccess`].Arn' --output text)
 echo The ARN of the Admin policy is $ADMIN_POLICY.
 
-aws iam attach-group-policy --group-name  ${PREFIX}-sysops --policy-arn $ADMIN_POLICY
+aws iam ▒▒▒▒▒▒-group-policy --group-name  ${PREFIX}-sysops --policy-arn $ADMIN_POLICY
 ```
 
 ## Developer workflow 1: creating the staging repository of files
@@ -194,13 +194,13 @@ aws sts get-caller-identity
 DEV_BUCKET_NAME=$PREFIX-dev-bucket-$RANDOM
 echo Your development bucket will be $DEV_BUCKET_NAME
 
-aws s3 mb s3://$DEV_BUCKET_NAME
+aws s3 ▒▒ s3://$DEV_BUCKET_NAME
 ```
 
-* Upload the application to our development repository (the bucket)
+* Upload (copy) the application to our development repository (the bucket)
 
 ```bash
-aws s3 cp ./server.sh s3://$DEV_BUCKET_NAME/
+aws s3 ▒▒ ./server.sh s3://$DEV_BUCKET_NAME/
 
 aws s3 ls s3://$DEV_BUCKET_NAME
 ```
@@ -238,7 +238,7 @@ aws sts get-caller-identity
 PROD_BUCKET_NAME=$PREFIX-prod-bucket-$RANDOM
 echo Your production bucket will be $DEV_BUCKET_NAME
 
-aws s3 mb s3://$PROD_BUCKET_NAME
+aws s3 ▒▒ s3://$PROD_BUCKET_NAME
 ```
 
 ## CLI profiles
@@ -348,7 +348,7 @@ entities are being created, and what are the relationships between them.
 * First, check how Bob fails copying the file to the production bucket
 
 ```bash
-aws s3 cp ./server.sh s3://$PROD_BUCKET_NAME --profile bob
+aws s3 ▒▒ ./server.sh s3://$PROD_BUCKET_NAME --▒▒▒▒▒▒▒ bob
 ```
 
 * Daniella needs to create a *trust policy*, the element that allows users from other accounts 
@@ -421,8 +421,8 @@ S3_WRITE_PERMISSION_POLICY=`cat write-only-prod-bucket-policy.json |  tr '\n' ' 
 
 aws iam put-role-policy \
   --role-name $PREFIX-developers-on-production \
-  --policy-name $PREFIX-write-to-production-repo \
-  --policy-document "$S3_WRITE_PERMISSION_POLICY" \
+  --policy-▒▒▒▒ $PREFIX-write-to-production-repo \
+  --policy-▒▒▒▒▒▒▒▒ "$S3_WRITE_PERMISSION_POLICY" \
   --profile daniella
 ```
 
@@ -459,9 +459,9 @@ EOF
 ASSUME_PERMISSION_POLICY=`cat assume-role-permission-policy.json |  tr '\n' ' '`
 
 aws iam put-group-policy \
---group-name ${PREFIX}-developers \
---policy-name ${PREFIX}-assume-role-dev-account \
---policy-document "$ASSUME_PERMISSION_POLICY" \
+--group-▒▒▒▒ ${PREFIX}-developers \
+--policy-▒▒▒▒ ${PREFIX}-assume-role-dev-account \
+--policy-▒▒▒▒▒▒▒ "$ASSUME_PERMISSION_POLICY" \
 --profile alice-dev
 
 ```
@@ -493,7 +493,7 @@ aws sts get-caller-identity --profile bob-production
 production bucket
 
 ```bash
-aws s3 cp ./server.sh s3://$PROD_BUCKET_NAME --profile bob-production
+aws s3 ▒▒ ./server.sh s3://$PROD_BUCKET_NAME --profile bob-production
 ```
 
 ## Resource based policies introduction
