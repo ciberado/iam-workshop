@@ -348,7 +348,7 @@ entities are being created, and what are the relationships between them.
 * First, check how Bob fails copying the file to the production bucket
 
 ```bash
-aws s3 ▒▒ ./server.sh s3://$PROD_BUCKET_NAME --▒▒▒▒▒▒▒ bob
+aws s3 ▒▒ ./server.sh s3://$PROD_BUCKET_NAME --profile bob
 ```
 
 * Daniella needs to create a *trust policy*, the element that allows users from other accounts 
