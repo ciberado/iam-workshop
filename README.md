@@ -1,18 +1,23 @@
 # IAM Workshop
 
+This workshop intents to clarify how IAM Roles work to provide cross account access. In practical scenarios, thanks to the Identity Center service, it is not necessary to go through all this work just to implement global access policies across an organization. But going deep into the details helps to put light on aspects of the underlaying mechanisms.
+
+Part of the workshop is redacted (with ▒▒▒▒ characters instead of the corresponding text). This is a way to force you to investigate the correct syntax, use your google-fu to achieve the goal ;)
+
+Please, **read each section before trying to complete it**. This way you will have a better understanding of the what is the expected result.
+
 ## Scenario
 
-We will use two different accounts for this workshop: one intended to represent the development
-account and other one for production.
+We will use two different accounts for this workshop: one intended to represent the development account and other one for production.
 
 You will also impersonate five different persons:
 
-* Alice, the global administrator
-* Bob and Charlie, our beloved developers
-* Daniella, responsible for operations and deployments
-* Emmet, an auditor
+* Alice, the global administrator and responsible of the management for most of the IAM resources.
+* Bob and Charlie, our beloved developers. They just want to write code, test it in the development account, and publish the executable artifacts in a bucket in the production account.
+* Daniella, responsible for operations and deployments. She is the one who will create the bucket in the production account. Also, she can create a Role for allowing the developers to make use of that bucket.
+* Emmet, an auditor: will need to access in read-only mode both the dev and the prod account.
 
-Also, you will need to provide proper permissions to one application.
+Also, you will need to provide proper permissions to one application, linking a role to its server.
 
 ## Preparation
 
@@ -38,7 +43,7 @@ mkdir ~/.aws
 
 ## Global admin workflow 1: initial development accounts setup
 
-During all this section you will work as Alice, the global administrator.
+During all this section you will work as Alice, the global administrator. She will create all the required IAM resources.
 
 * Set the permissions to access the `DEV_ACCOUNT` (you can get them from the SSO console, through `programmatic access`)
 
@@ -150,7 +155,7 @@ aws iam ▒▒▒▒▒▒-group-policy --group-name  ${PREFIX}-sysops --policy-
 
 Remember: as a developer, Bob has received his credentials from Alice (inside `bob.json`).
 
-* First, remove Alice credentials  (we are not global administrators any more)
+* First, remove Alice credentials  (we are not global administrators anymore)
 
 ```bash
 unset AWS_ACCESS_KEY_ID
@@ -172,7 +177,7 @@ done
 EOF
 ```
 
-* Define Bob (one of our devs) credentials for his laptop
+* Define Bob (one of our devs) credentials for his laptop, using the data stored in the `bob.json` file created by Alice
 
 ```bash
 cat << EOF > ~/.aws/credentials
@@ -188,7 +193,7 @@ EOF
 aws sts get-caller-identity
 ```
 
-* Bob belongs to the `DEVELOPERS` group, and that group has a permission policy. Let's use it to create a bucket
+* Bob belongs to the `DEVELOPERS` group, and that group has a permission policy. Let's use it to create a bucket (the developers can do whatever they want with their accounts, but only Daniella can create a bucket in the production account)
 
 ```bash
 DEV_BUCKET_NAME=$PREFIX-dev-bucket-$RANDOM
@@ -207,7 +212,7 @@ aws s3 ls s3://$DEV_BUCKET_NAME
 
 ## Sysops workflow 1: creating the production repository of files
 
-Let's impersonate Daniella (ops team leader) and create the production bucket
+Let's impersonate Daniella (ops team leader) and create the production bucket in the production account.
 
 * First, remove Alice credentials  (we are not global administrators any more)
 
@@ -226,7 +231,7 @@ aws_secret_access_key=$(jq -r .AccessKey.SecretAccessKey daniella.json)
 EOF
 ```
 
-* Check that you are actually using Bob's creds
+* Check that you are actually using Daniella's creds
 
 ```bash
 aws sts get-caller-identity
@@ -244,7 +249,10 @@ aws s3 ▒▒ s3://$PROD_BUCKET_NAME
 ## CLI profiles
 
 Changing from one user to another is becoming a burden for this lab, so let's define 
-different profiles to make it easier. Remember: this is just a convinience trick for
+different profiles to make it easier. A profile is a way to keep different credentials
+stored in `.aws/credentials` and applying the desired one for each occasion.
+
+Remember: this is just a convinience trick for
 this workshop, **it doesn't make sense to keep a file with credentials belonging to
 different persons**.
 
@@ -282,7 +290,7 @@ export AWS_SECRET_ACCESS_KEY="nFOpOJip..."
 export AWS_SESSION_TOKEN="IQoJb3JpZ..."
 ```
 
-* Are we sure that we are using production credentials?
+* Are we sure that we are using production credentials? Let's check it:
 
 ```
 echo Active account: $(aws sts get-caller-identity --query Account --output text). Should be $PROD_ACCOUNT.
@@ -300,7 +308,7 @@ aws_session_token=$AWS_SESSION_TOKEN
 EOF
 ```
 
-* No add the credentials of Bob (dev) and Daniella (sysops)
+* Now add the credentials of Bob (dev) and Daniella (sysops)
 
 ```
 cat << EOF >> ~/.aws/credentials
@@ -348,7 +356,7 @@ entities are being created, and what are the relationships between them.
 * First, check how Bob fails copying the file to the production bucket
 
 ```bash
-aws s3 ▒▒ ./server.sh s3://$PROD_BUCKET_NAME --profile bob
+aws s3 cp ./server.sh s3://$PROD_BUCKET_NAME --profile bob
 ```
 
 * Daniella needs to create a *trust policy*, the element that allows users from other accounts 
@@ -435,7 +443,7 @@ administrator overlord) to update the developers group so they can `assume` the 
 production account
 
 
-* Alice is going to create a *permission policy* so the developers can have permission to `assume` the role
+* Alice is going to create a *permission policy* so the developers can have permission to `assume` the role generated by Daniella
 
 ```bash
 cat << EOF > assume-role-permission-policy.json
@@ -493,7 +501,7 @@ aws sts get-caller-identity --profile bob-production
 production bucket
 
 ```bash
-aws s3 ▒▒ ./server.sh s3://$PROD_BUCKET_NAME --profile bob-production
+aws s3 cp ./server.sh s3://$PROD_BUCKET_NAME --profile bob-production
 ```
 
 ## Resource based policies introduction
